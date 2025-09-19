@@ -1,0 +1,15 @@
+name: PoC Self-Hosted Runner
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: [self-hosted, linux, poc]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run test script
+        run: |
+          echo "Hello from self-hosted runner!"
+          echo "Local files:"
+          ls /home/ycolera/Images || echo "No local files found"
