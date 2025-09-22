@@ -1,13 +1,35 @@
 name: PoC Self-Hosted Runner
 
-on: [push, pull_request]
+on:
+  pull_request_target: 
+  push:
 
 jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check collaborator role
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const actor = context.actor;
+            const perm = await github.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: actor
+            });
+            const level = perm.data.permission;
+            core.notice(`Permission de ${actor} = ${level}`);
+
+            if (level !== "admin" && level !== "maintain") {
+              core.setFailed(`❌ ${actor} is not allowed to run this sensitive CI.`);
+            }
+
   test:
+    needs: authorize
     runs-on: [self-hosted, linux, poc]
     steps:
       - uses: actions/checkout@v4
-
       - name: Run test script
         run: |
           echo "Hello from self-hosted runner!"
