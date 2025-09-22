@@ -1,7 +1,7 @@
 name: PoC Self-Hosted Runner
 
 on:
-  pull_request_target: 
+  pull_request_target:  
   push:
 
 jobs:
@@ -13,20 +13,22 @@ jobs:
         with:
           script: |
             const actor = context.actor;
-            const perm = await github.repos.getCollaboratorPermissionLevel({
+            const perm = await github.rest.repos.getCollaboratorPermissionLevel({
               owner: context.repo.owner,
               repo: context.repo.repo,
               username: actor
             });
             const level = perm.data.permission;
-            core.notice(`Permission de ${actor} = ${level}`);
+            core.notice(`Permission for ${actor} = ${level}`);
 
             if (level !== "admin" && level !== "maintain") {
               core.setFailed(`❌ ${actor} is not allowed to run this sensitive CI.`);
+            } else {
+              core.notice(`✅ ${actor} is authorized to run the CI.`);
             }
 
   test:
-    needs: authorize
+    needs: authorize   # le job test ne s'exécute que si authorize passe
     runs-on: [self-hosted, linux, poc]
     steps:
       - uses: actions/checkout@v4
