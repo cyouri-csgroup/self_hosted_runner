@@ -5,27 +5,41 @@ on:
   push:
 
 jobs:
-  authorize:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check collaborator role
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const actor = context.actor;
-            const perm = await github.rest.repos.getCollaboratorPermissionLevel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              username: actor
-            });
-            const level = perm.data.permission;
-            core.notice(`Permission for ${actor} = ${level}`);
+  # authorize:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check collaborator role
+  #       uses: actions/github-script@v6
+  #       with:
+  #         script: |
+  #           const actor = context.actor;
+  #           const perm = await github.rest.repos.getCollaboratorPermissionLevel({
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             username: actor
+  #           });
+  #           const level = perm.data.permission;
+  #           core.notice(`Permission for ${actor} = ${level}`);
 
-            if (level !== "admin" && level !== "maintain") {
-              core.setFailed(`❌ ${actor} is not allowed to run this sensitive CI.`);
-            } else {
-              core.notice(`✅ ${actor} is authorized to run the CI.`);
-            }
+  #           if (level !== "admin" && level !== "maintain") {
+  #             core.setFailed(`❌ ${actor} is not allowed to run this sensitive CI.`);
+  #           } else {
+  #             core.notice(`✅ ${actor} is authorized to run the CI.`);
+  #           }
+
+  authorize:
+  runs-on: [self-hosted, linux, poc]
+  steps:
+    - name: Check local whitelist
+      run: |
+        ACTOR="${{ github.actor }}"
+        echo "Checking whitelist for: $ACTOR"
+        if ! grep -q "^$ACTOR$" /home/ycolera/Document/self_hosted_runner/whitelist.txt ; then
+          echo "❌ $ACTOR is not allowed to run this sensitive CI."
+          exit 1
+        else
+          echo "✅ $ACTOR is authorized."
+        fi
 
   test:
     needs: authorize   # le job test ne s'exécute que si authorize passe
