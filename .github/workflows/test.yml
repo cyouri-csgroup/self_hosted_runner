@@ -28,18 +28,18 @@ jobs:
   #           }
 
   authorize:
-  runs-on: [self-hosted, linux, poc]
-  steps:
-    - name: Check local whitelist
-      run: |
-        ACTOR="${{ github.actor }}"
-        echo "Checking whitelist for: $ACTOR"
-        if ! grep -q "^$ACTOR$" /home/ycolera/Document/self_hosted_runner/whitelist.txt ; then
-          echo "❌ $ACTOR is not allowed to run this sensitive CI."
-          exit 1
-        else
-          echo "✅ $ACTOR is authorized."
-        fi
+    runs-on: [self-hosted, linux, poc]
+    steps:
+      - name: Check local whitelist
+        run: |
+          ACTOR="${{ github.actor }}"
+          echo "Checking whitelist for: $ACTOR"
+          if ! grep -q "^$ACTOR$" /home/ycolera/Document/self_hosted_runner/whitelist.txt ; then
+            echo "❌ $ACTOR is not allowed to run this sensitive CI."
+            exit 1
+          else
+            echo "✅ $ACTOR is authorized."
+          fi
 
   test:
     needs: authorize   # le job test ne s'exécute que si authorize passe
